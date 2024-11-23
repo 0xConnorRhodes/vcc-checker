@@ -1,15 +1,28 @@
 require 'csv'
 require 'pp'
+require 'slop'
 require_relative 'lib/fzf'
 require 'pry'
 
-class ImportCsv
+class VccChecker
   def import csv_file
     hash_array = []
     CSV.foreach(csv_file, headers: true) do |row|
-      hash_array << row.to_h
+      hash_array << row.to_h.transform_keys(&:upcase)
     end
     return hash_array
+  end
+
+  def parse_args
+    opts = Slop.parse do |o|
+      o.string '-i', '--input', 'input csv'
+      o.string '-o', '--output', 'output csv', default: 'output.csv'
+    end
+    if !opts.input?
+      puts opts
+      exit
+    end
+    return opts
   end
 
   def show_example_data raw_data
@@ -33,7 +46,10 @@ class ImportCsv
   end
 
   def count_duplicate_lines data
-    data = data.uniq
+    result = data.group_by(&:itself).map do |hash, occurrences|
+      hash.merge("COUNT" => occurrences.size)
+    end
+    return result
   end
 
   def write_output_file data, out_file
@@ -56,21 +72,17 @@ class ImportCsv
   end
 end
 
-in_file = ARGV.first
-out_file = 'output.csv'
+vcc = VccChecker.new
+opts = vcc.parse_args
 
-vcc = ImportCsv.new
+data_raw = vcc.import opts[:input]
 
-raw_data = vcc.import in_file
+vcc.show_example_data data_raw
 
-vcc.show_example_data raw_data
-
-attributes = vcc.choose_filter_attributes raw_data
-data_filtered = vcc.filter_by_attributes raw_data, attributes
+attributes = vcc.choose_filter_attributes data_raw
+data_filtered = vcc.filter_by_attributes data_raw, attributes
 data = vcc.count_duplicate_lines data_filtered
 
-vcc.write_output_file data, out_file
+vcc.write_output_file data, opts[:output]
 
-puts `head #{out_file} | column -t -s ','`
-
-# binding.pry
+puts `head #{opts[:output]} | column -t -s ','`
