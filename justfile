@@ -1,6 +1,6 @@
 set shell := ["ruby", "-e"]
 
 test:
-  `rm output.csv` if File.exist? 'output.csv'
-  exec('ruby import-csv.rb -i test.csv')
-  `cp output.csv /out/dwn`
+  `rm test/output.csv` if File.exist? 'test/output.csv'
+  exec('ruby import-csv.rb -i test/test.csv -o test/output.csv')
+  `cp test/output.csv /out/dwn`

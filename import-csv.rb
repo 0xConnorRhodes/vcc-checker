@@ -81,7 +81,9 @@ vcc.show_example_data data_raw
 
 attributes = vcc.choose_filter_attributes data_raw
 data_filtered = vcc.filter_by_attributes data_raw, attributes
-data = vcc.count_duplicate_lines data_filtered
+data_uniq = vcc.count_duplicate_lines data_filtered
+
+data = data_uniq
 
 vcc.write_output_file data, opts[:output]
 
