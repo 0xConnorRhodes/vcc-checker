@@ -58,11 +58,11 @@ out_file = 'output.csv'
 csv = ImportCsv.new
 
 raw_data = csv.import in_file
+
 csv.show_example_data raw_data
 
 attributes = csv.choose_filter_attributes raw_data
 data_filtered = csv.filter_by_attributes raw_data, attributes
-
 data = data_filtered.uniq
 
 csv.write_output_file data, out_file
