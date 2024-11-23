@@ -14,10 +14,15 @@ class ImportCsv
 
   def show_example_data raw_data
     puts 'Example data from CSV:'
-    pp raw_data[0]
+    pp raw_data.first
     puts ''
     puts "Press Enter to continue..."
     STDIN.gets
+  end
+
+  def choose_filter_attributes data
+    keys_arr = data.first.keys
+    keys = fzf(keys_arr, '-m')
   end
 
   def filter_by_attributes data, keys
@@ -27,20 +32,14 @@ class ImportCsv
     return filtered_data
   end
 
-  def choose_filter_attributes data
-    keys_arr = data[0].keys
-    keys = fzf(keys_arr, '-m')
-  end
-
-  def write_output_file data
-    csv_file = 'output.csv'
-    if File.exist?(csv_file)
-      puts "file #{csv_file} exists. Overwrite? y/n"
+  def write_output_file data, out_file
+    if File.exist?(out_file)
+      puts "file #{out_file} exists. Overwrite? y/n"
       choice = STDIN.gets.strip.downcase
       return if choice != 'y' # exit method without writing if choice != y
     end
 
-    CSV.open(csv_file, 'w') do |csv|
+    CSV.open(out_file, 'w') do |csv|
       # Write the headers
       csv << data.first.keys
 
@@ -49,16 +48,16 @@ class ImportCsv
         csv << hash.values
       end
     end
-    puts "Wrote #{csv_file}\n\n"
-    return csv_file
+    puts "Wrote #{out_file}\n\n"
   end
 end
 
-csv_file = ARGV[0]
+in_file = ARGV[0]
+out_file = 'output.csv'
 
 csv = ImportCsv.new
 
-raw_data = csv.import csv_file
+raw_data = csv.import in_file
 csv.show_example_data raw_data
 
 attributes = csv.choose_filter_attributes raw_data
@@ -66,8 +65,8 @@ data_filtered = csv.filter_by_attributes raw_data, attributes
 
 data = data_filtered.uniq
 
-output_file = csv.write_output_file data
+csv.write_output_file data, out_file
 
-puts `head #{output_file} | column -t -s ','`
+puts `head #{out_file} | column -t -s ','`
 
 # binding.pry
