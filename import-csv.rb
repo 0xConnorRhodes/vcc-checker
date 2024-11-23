@@ -1,6 +1,6 @@
 require 'csv'
 require 'pp'
-require_relative 'lib/vcc-checker/fzf'
+require_relative 'lib/fzf'
 require 'pry'
 
 class ImportCsv
@@ -49,7 +49,8 @@ class ImportCsv
         csv << hash.values
       end
     end
-    puts "Wrote #{csv_file}"
+    puts "Wrote #{csv_file}\n\n"
+    return csv_file
   end
 end
 
@@ -65,6 +66,8 @@ data_filtered = csv.filter_by_attributes raw_data, attributes
 
 data = data_filtered.uniq
 
-csv.write_output_file data
+output_file = csv.write_output_file data
+
+puts `head #{output_file} | column -t -s ','`
 
 # binding.pry
