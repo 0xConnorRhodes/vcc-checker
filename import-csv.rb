@@ -32,6 +32,10 @@ class ImportCsv
     return filtered_data
   end
 
+  def count_duplicate_lines data
+    data = data.uniq
+  end
+
   def write_output_file data, out_file
     if File.exist?(out_file)
       puts "file #{out_file} exists. Overwrite? y/n"
@@ -52,20 +56,20 @@ class ImportCsv
   end
 end
 
-in_file = ARGV[0]
+in_file = ARGV.first
 out_file = 'output.csv'
 
-csv = ImportCsv.new
+vcc = ImportCsv.new
 
-raw_data = csv.import in_file
+raw_data = vcc.import in_file
 
-csv.show_example_data raw_data
+vcc.show_example_data raw_data
 
-attributes = csv.choose_filter_attributes raw_data
-data_filtered = csv.filter_by_attributes raw_data, attributes
-data = data_filtered.uniq
+attributes = vcc.choose_filter_attributes raw_data
+data_filtered = vcc.filter_by_attributes raw_data, attributes
+data = vcc.count_duplicate_lines data_filtered
 
-csv.write_output_file data, out_file
+vcc.write_output_file data, out_file
 
 puts `head #{out_file} | column -t -s ','`
 
