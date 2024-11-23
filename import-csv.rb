@@ -1,6 +1,6 @@
 require 'csv'
 require 'pp'
-require '/home/connor/code/notes-scripts/modules/ruby/fzf'
+require_relative 'lib/vcc-checker/fzf'
 require 'pry'
 
 class ImportCsv
