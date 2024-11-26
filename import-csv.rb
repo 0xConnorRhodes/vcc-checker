@@ -17,6 +17,7 @@ class VccChecker
     opts = Slop.parse do |o|
       o.string '-i', '--input', 'input csv'
       o.string '-o', '--output', 'output csv', default: 'output.csv'
+      o.string '-h', '--hcl', 'Hardware Compatibility List CSV: verkada.com/security-cameras/command-connector/hcl'
     end
     if !opts.input?
       puts opts
@@ -52,6 +53,36 @@ class VccChecker
     return result
   end
 
+  def check_hcl data, hcl
+    # remove intro comments in hcl.csv
+    first_line = File.open(hcl, 'r') {|f| f.readline.chomp}
+    if first_line != 'Manufacturer,Model Name,Minimum Firmware Supported,Notes'
+      `sed -i '1,4d' #{hcl}` 
+    end
+
+
+    hcl_arr = []
+    CSV.foreach(hcl, headers: true) do |row|
+      hcl_arr << row.to_h
+    end
+    hcl_arr.each {|hash| hash.delete(nil)}
+
+    manufacturer_remaps = {
+      "Axis Communications" => "Axis",
+      "Arecont Vision" => "Arecont",
+      "Hanwha Techwin" => "Hanwha"
+    }
+
+    manufacturer_remaps.each do |remap|
+      hcl_arr.each do |device|
+          device["Manufacturer"] = remap[1] if device["Manufacturer"] == remap[0]
+      end
+    end
+
+    # return data
+    return hcl_arr # debug
+  end
+
   def write_output_file data, out_file
     if File.exist?(out_file)
       puts "file #{out_file} exists. Overwrite? y/n"
@@ -83,8 +114,13 @@ attributes = vcc.choose_filter_attributes data_raw
 data_filtered = vcc.filter_by_attributes data_raw, attributes
 data_uniq = vcc.count_duplicate_lines data_filtered
 
-data = data_uniq
+data_hcl = opts.hcl? ? (vcc.check_hcl data_uniq, opts[:hcl]) : data_uniq
+
+# data = data_hcl
+data = data_uniq # debug
 
 vcc.write_output_file data, opts[:output]
 
 puts `head #{opts[:output]} | column -t -s ','`
+
+# binding.pry
