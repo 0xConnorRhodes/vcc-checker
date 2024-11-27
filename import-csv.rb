@@ -48,8 +48,9 @@ class VccChecker
 
   def count_duplicate_lines data
     result = data.group_by(&:itself).map do |hash, occurrences|
-      hash.merge("COUNT" => occurrences.size)
+      hash.merge("Count" => occurrences.size)
     end
+    result = normalize_data result
     return result
   end
 
@@ -67,28 +68,18 @@ class VccChecker
     end
     hcl_arr.each {|hash| hash.delete(nil)}
 
-    manufacturer_remaps = {
-      "Axis Communications" => "Axis",
-      "Arecont Vision" => "Arecont",
-      "Hanwha Techwin" => "Hanwha"
-    }
+    hcl_arr = normalize_data hcl_arr
 
-    field_remaps = {
-      "Model Name" => "Model"
-    }
+    # check data for hcl compatibility
+    # data.each do |device|
+    #   hcl_arr.each do |hcl_dev|
+    #     if hcl_dev["Manufacturer"] == device["Manufacturer"]&& hcl_dev["Model"] == device["Model"]
+    #       p hcl_dev
+    #     end
+    #   end
+    # end
 
-    manufacturer_remaps.each do |remap|
-      hcl_arr.each do |device|
-          device["Manufacturer"] = remap[1] if device["Manufacturer"] == remap[0]
-      end
-    end
-
-    field_remaps.each do |remap|
-      hcl_arr.each do |device|
-        device[remap[1]] = device.delete(remap[0])
-      end
-    end
-
+    binding.pry
     # return data
     return hcl_arr # debug
   end
@@ -111,6 +102,36 @@ class VccChecker
     end
     puts "Wrote #{out_file}\n\n"
   end
+
+  private
+    def normalize_data data
+      manufacturer_remaps = {
+        "Axis Communications" => "Axis",
+        "Arecont Vision" => "Arecont",
+        "Hanwha Techwin" => "Hanwha",
+        "HANWHA TECHWIN" => "Hanwha"
+      }
+
+      field_remaps = {
+        "Model Name" => "Model",
+        "MODEL" => "Model",
+        "MANUFACTURER" => "Manufacturer"
+      }
+
+      field_remaps.each do |old_field, new_field|
+        data.each do |device|
+          device[new_field] = device.delete(old_field) if device.key? old_field
+        end
+      end
+
+      manufacturer_remaps.each do |old_name, new_name|
+        data.each do |device|
+          device["Manufacturer"] = new_name if device["Manufacturer"] == old_name
+        end
+      end
+
+      return data
+    end
 end
 
 vcc = VccChecker.new
@@ -133,4 +154,4 @@ vcc.write_output_file data, opts[:output]
 
 puts `head #{opts[:output]} | column -t -s ','`
 
-binding.pry
+# binding.pry
