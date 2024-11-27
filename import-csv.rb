@@ -73,9 +73,19 @@ class VccChecker
       "Hanwha Techwin" => "Hanwha"
     }
 
+    field_remaps = {
+      "Model Name" => "Model"
+    }
+
     manufacturer_remaps.each do |remap|
       hcl_arr.each do |device|
           device["Manufacturer"] = remap[1] if device["Manufacturer"] == remap[0]
+      end
+    end
+
+    field_remaps.each do |remap|
+      hcl_arr.each do |device|
+        device[remap[1]] = device.delete(remap[0])
       end
     end
 
@@ -123,4 +133,4 @@ vcc.write_output_file data, opts[:output]
 
 puts `head #{opts[:output]} | column -t -s ','`
 
-# binding.pry
+binding.pry
