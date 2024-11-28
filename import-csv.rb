@@ -70,18 +70,23 @@ class VccChecker
 
     hcl_arr = normalize_data hcl_arr
 
-    # check data for hcl compatibility
-    # data.each do |device|
-    #   hcl_arr.each do |hcl_dev|
-    #     if hcl_dev["Manufacturer"] == device["Manufacturer"]&& hcl_dev["Model"] == device["Model"]
-    #       p hcl_dev
-    #     end
-    #   end
-    # end
+    # check data for hcl compatibility and pull in relevant data
+    data.each do |device|
+      hcl_arr.each do |hcl_dev|
+        if hcl_dev["Manufacturer"] == device["Manufacturer"] && hcl_dev["Model"] == device["Model"]
+          device["HCL"] = 'TRUE'
+          device["Min FW Version"] = hcl_dev["Minimum Firmware Supported"]
+          device["Notes"] = hcl_dev["Notes"]
+          break # needed since this loop is for every hcl_dev, not every device
+        else
+          device["HCL"] = 'FALSE'
+          device["Min FW Version"] = nil
+          device["Notes"] = nil
+        end
+      end
+    end
 
-    binding.pry
-    # return data
-    return hcl_arr # debug
+    return data
   end
 
   def write_output_file data, out_file
@@ -147,8 +152,8 @@ data_uniq = vcc.count_duplicate_lines data_filtered
 
 data_hcl = opts.hcl? ? (vcc.check_hcl data_uniq, opts[:hcl]) : data_uniq
 
-# data = data_hcl
-data = data_uniq # debug
+data = data_hcl
+# data = data_uniq # debug
 
 vcc.write_output_file data, opts[:output]
 
