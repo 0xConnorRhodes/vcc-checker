@@ -151,9 +151,7 @@ data_filtered = vcc.filter_by_attributes data_raw, attributes
 data_uniq = vcc.count_duplicate_lines data_filtered
 
 data_hcl = opts.hcl? ? (vcc.check_hcl data_uniq, opts[:hcl]) : data_uniq
-
 data = data_hcl
-# data = data_uniq # debug
 
 vcc.write_output_file data, opts[:output]
 
