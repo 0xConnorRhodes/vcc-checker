@@ -153,8 +153,22 @@ data_uniq = vcc.count_duplicate_lines data_filtered
 data_hcl = opts.hcl? ? (vcc.check_hcl data_uniq, opts[:hcl]) : data_uniq
 data = data_hcl
 
+# optional code to sum a field if utilized channels per individual camera is included in raw data
+# channel_counts = []
+# data.each do |model|
+#   model["Total Channel Count"] = 0
+
+#   data_raw.each do |cam|
+#     model["Total Channel Count"] += cam["CHANNEL"].to_i if cam["MODEL"] == model["Model"]
+#   end
+# end
+
 vcc.write_output_file data, opts[:output]
 
 puts `head #{opts[:output]} | column -t -s ','`
 
-# binding.pry
+# tally code
+
+
+
+binding.pry
