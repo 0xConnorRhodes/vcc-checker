@@ -167,8 +167,4 @@ vcc.write_output_file data, opts[:output]
 
 puts `head #{opts[:output]} | column -t -s ','`
 
-# tally code
-
-
-
-binding.pry
+# binding.pry
